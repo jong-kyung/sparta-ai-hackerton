@@ -11,6 +11,9 @@ def show_home():
     # 1) 공통 CSS 주입
     st.markdown("""
     <style>
+    body {
+        background-color: #fdfcfd; /* AliceBlue 색상 */
+    }
     /* 전체 래퍼 */
     .home-wrapper {
         max-width: 820px;
