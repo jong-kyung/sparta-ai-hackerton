@@ -1,7 +1,5 @@
 import streamlit as st
-import streamlit.components.v1 as components
-import openai
-import os
+import time
 from logic.session_manager import (
     load_user_data,
     save_analysis_result,
@@ -169,7 +167,7 @@ def show_result():
 
     receiver_email = st.text_input("음악 링크를 받을 이메일 주소를 입력하세요")
 
-    if st.button("1분 뒤 이메일 전송하기 ⏳"):
+    if st.button("이메일 전송하기", type="primary",):
         if not diary or not receiver_email.strip():
             st.warning("⚠️ 감정 일기와 이메일 주소를 모두 입력해주세요.")
         else:
@@ -194,8 +192,6 @@ def show_result():
                 </div>
             """
 
-            st.success("✅ 예약 완료! 1분 뒤에 이메일이 전송됩니다...")
-
             st.markdown("### 🎵 지금 바로 음악 감상하기")
             if "youtube.com" in music_link or "youtu.be" in music_link:
                 st.video(music_link)
@@ -204,15 +200,14 @@ def show_result():
             else:
                 st.info(f"[👉 추천 음악 링크로 이동하기 🎶]({music_link})")
 
-            # 1분 대기 후 이메일 전송
-            import time
-            time.sleep(60)
+            # 10초 대기 후 이메일 전송
+            time.sleep(10)
 
             with st.spinner("이메일 전송 중... 📧"):
                 success = send_alert_email(email_subject, email_body)
 
             if success:
-                st.success(f"✅ 이메일이 {receiver_email}로 성공적으로 전송되었습니다!")
+                st.toast(f"✅ 이메일이 {receiver_email}로 성공적으로 전송되었습니다!")
                 st.balloons()    
 
     # — 8) 다시 시작 버튼
