@@ -10,8 +10,8 @@ os.environ["SENDER_PASSWORD"] = st.secrets["SENDER_PASSWORD"]
 SENDER_EMAIL = os.environ.get("SENDER_EMAIL")
 SENDER_PASSWORD = os.environ.get("SENDER_PASSWORD")
 
-def send_alert_email(subject, body):
-    receiver_email = SENDER_EMAIL  
+def send_alert_email(subject, body, email):
+    receiver_email = email  
 
     msg = MIMEText(body, 'html')
     msg['Subject'] = subject

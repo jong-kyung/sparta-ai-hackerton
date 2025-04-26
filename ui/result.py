@@ -204,7 +204,7 @@ def show_result():
             time.sleep(10)
 
             with st.spinner("이메일 전송 중... 📧"):
-                success = send_alert_email(email_subject, email_body)
+                success = send_alert_email(email_subject, email_body, receiver_email)
 
             if success:
                 st.toast(f"✅ 이메일이 {receiver_email}로 성공적으로 전송되었습니다!")
