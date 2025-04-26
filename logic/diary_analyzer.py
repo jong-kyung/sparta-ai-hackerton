@@ -9,6 +9,43 @@ openai_api_key = os.getenv("OPENAI_API_KEY")
 
 client = OpenAI(api_key=openai_api_key)
 
+import re
+
+def analyze_diary(diary_text):
+    if not diary_text.strip():
+        return "감정 일기가 비어 있습니다.", "https://www.youtube.com/watch?v=9Sc-ir2UwGU"
+
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {"role": "system", "content": (
+                    "너는 따뜻한 심리 상담가야. 사용자의 감정 일기를 읽고:\n"
+                    "1. 감정 상태에 대한 언급 없이, 부드럽고 진심 어린 위로의 말을 건네줘.\n"
+                    "2. 위로의 말 마지막에 꼭 어울리는 무료 YouTube 음악 링크를 하나 추천해줘. (YouTube만 가능)\n"
+                    "3. 답변은 자연스럽고 사람다운 따뜻한 문장으로 작성해줘.\n"
+                    "4. 링크는 반드시 텍스트 안에 자연스럽게 포함시켜줘."
+                )},
+                {"role": "user", "content": f"내가 쓴 감정 일기야:\n\n{diary_text}\n\n부드럽게 위로해줘."}
+            ]
+        )
+        comfort_message = response.choices[0].message.content
+        music_link = extract_music_link(comfort_message)
+        return comfort_message, music_link
+    except Exception as e:
+        return f"⚠️ 위로 생성 실패: {e}", "https://www.youtube.com/watch?v=9Sc-ir2UwGU"
+
+def extract_music_link(text):
+    """
+    텍스트 중 첫 번째 YouTube URL 추출
+    """
+    urls = re.findall(r'(https?://[^\s]+)', text)
+    for url in urls:
+        if "youtube.com" in url or "youtu.be" in url:
+            return url
+    return "https://www.youtube.com/watch?v=9Sc-ir2UwGU"
+
+
 def analyze_diary_and_comfort(diary_text):
     if not diary_text.strip():
         return "일기 내용이 비어 있어 분석할 수 없습니다.", "따뜻한 위로를 전할 수 없습니다."
@@ -18,23 +55,14 @@ def analyze_diary_and_comfort(diary_text):
         analysis_response = client.chat.completions.create(
             model="gpt-4o",
             messages=[
-                {"role": "system", "content": "너는 사용자의 감정 상태를 부드럽게 분석하는 심리 상담가야."},
-                {"role": "user", "content": f"다음은 사용자가 쓴 일기야:\n{diary_text}\n이 사용자의 감정 상태를 간결하고 따뜻하게 분석해줘."}
+                {"role": "system", "content": "너는 나의 감정 상태를 부드럽게 분석하는 심리 상담가야."},
+                {"role": "user", "content": f"내가 쓴 일기야:\n{diary_text}\n이 사용자의 감정 상태를 간결하고 따뜻하게 분석해줘."}
             ]
         )
         analysis_result = analysis_response.choices[0].message.content
 
-    
-        comfort_response = client.chat.completions.create(
-            model="gpt-4o",
-            messages=[
-                {"role": "system", "content": "너는 사용자의 마음을 따뜻하게 위로하는 심리 상담가야."},
-                {"role": "user", "content": f"다음은 사용자가 쓴 일기야:\n{diary_text}\n이 사용자에게 따뜻하고 진심 어린 위로의 말을 건네줘."}
-            ]
-        )
-        comfort_message = comfort_response.choices[0].message.content
 
-        return analysis_result, comfort_message
+        return analysis_result
 
     except Exception as e:
         return f"⚠️ 감정 분석 실패: {e}", f"⚠️ 위로 생성 실패: {e}"

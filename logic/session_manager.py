@@ -23,3 +23,22 @@ def load_user_data():
         }
     else:
         return None
+
+def save_analysis_result(analysis_result):
+    st.session_state.analysis_result = analysis_result
+
+def save_music_link(music_link):
+    st.session_state.music_link = music_link
+
+def load_analysis_result():
+    return st.session_state.get("analysis_result", None)
+
+def load_music_link():
+    return st.session_state.get("music_link", None)
+
+def save_dsm5_result(dsm5_result):
+    st.session_state.dsm5_result = dsm5_result
+
+
+def load_dsm5_result():
+    return st.session_state.get("dsm5_result", None)
