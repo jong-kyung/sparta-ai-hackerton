@@ -113,7 +113,7 @@ def show_result():
         with gif_placeholder.markdown(
         f"""
         <div style="text-align: center;">
-            <img src="data:image/gif;base64,{gif_base64}" alt="Loading..." width="100%">
+            <img src="data:image/gif;base64,{gif_base64}" alt="Loading..." width="50%">
         </div>
         """,
         unsafe_allow_html=True
