@@ -11,47 +11,56 @@ from logic.session_manager import (
 )
 from logic.survey_analyzer import survey_summary
 from logic.diary_analyzer import analyze_diary_and_comfort, analyze_with_dsm5
+from base64 import b64encode
+from logic.alert_manager import send_alert_email  
+from logic.diary_analyzer import analyze_diary  
 
+def get_base64_gif(path):
+    with open(path, "rb") as f:
+        data = f.read()
+    return b64encode(data).decode()
+
+gif_base64 = get_base64_gif("assets/loading.gif")
 
 
 def show_result():
     # 1) 공통 CSS 주입
-    st.markdown(
-        """
-        <style>
-        /* 전체 컨테이너 */
-        .result-container {
-            max-width: 800px;
-            margin: 0 auto 40px;
-            padding: 20px;
-            background: #f9f9f9;
-            border-radius: 12px;
-        }
-        /* 섹션 카드 스타일 */
-        .card {
-            background: #fff;
-            padding: 16px;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-            margin-bottom: 24px;
-        }
-        /* 헤더 중앙 정렬 */
-        .header h1, .header p {
-            text-align: center;
-            margin: 4px 0;
-        }
-        /* 컬럼 간격 */
-        .stColumns > div {
-            padding: 0 8px;
-        }
-        /* Progress 바 색상 재정의 */
-        .stProgress > div > div > div > div {
-            background-color: #4CAF50 !important;
-        }
-        </style>
-        """,
-        unsafe_allow_html=True
-    )
+    st.markdown("""
+    <style>
+    /* 전체 컨테이너 */
+    body {
+        background-color: #fdfcfc; /* AliceBlue 색상 */
+    }
+    .result-container {
+        max-width: 800px;
+        margin: 0 auto 40px;
+        padding: 20px;
+        background: #f9f9f9;
+        border-radius: 12px;
+    }
+    /* 섹션 카드 스타일 */
+    .card {
+        background: #fff;
+        padding: 16px;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        margin-bottom: 24px;
+    }
+    /* 헤더 중앙 정렬 */
+    .header h1, .header p {
+        text-align: center;
+        margin: 4px 0;
+    }
+    /* 컬럼 간격 */
+    .stColumns > div {
+        padding: 0 8px;
+    }
+    /* Progress 바 색상 재정의 */
+    .stProgress > div > div > div > div {
+        background-color: #4CAF50 !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
 
     # — 2) 헤더
     st.title("📈 감정 분석 결과")
@@ -94,27 +103,44 @@ def show_result():
     st.subheader("🩺 설문 분석 결과")
     st.info(survey_summary(phq9_scores))
 
-    if load_analysis_result() is None:
-        with st.spinner("감정 상태 분석 및 위로 메시지를 생성하는 중... ✨"):
-            analysis_result = analyze_diary_and_comfort(diary)
-            save_analysis_result(analysis_result)
-    analysis_result = load_analysis_result()
-    
+    # — 5) AI 분석용 GIF 플레이스홀더
+    gif_placeholder = st.empty()
+    has_analysis = load_analysis_result() is not None
+    has_dsm5     = load_dsm5_result()     is not None
 
+    if not (has_analysis and has_dsm5):
+        # GIF 표시
+        with gif_placeholder.markdown(
+        f"""
+        <div style="text-align: center;">
+            <img src="data:image/gif;base64,{gif_base64}" alt="Loading..." width="100%">
+        </div>
+        """,
+        unsafe_allow_html=True
+        ):
+            # 감정 상태 분석
+            if not has_analysis:
+                analysis_result = analyze_diary_and_comfort(diary)
+                save_analysis_result(analysis_result)
+            # DSM-5 전문 분석
+            if not has_dsm5:
+                dsm5_result = analyze_with_dsm5(diary, phq9_scores)
+                save_dsm5_result(dsm5_result)
+        # GIF 제거
+        gif_placeholder.empty()
+
+    # 6) 분석 결과 불러오기
+    analysis_result = load_analysis_result()
+    dsm5_result      = load_dsm5_result()
+
+    # — 7) 감정 상태 분석 표시
     st.subheader("💬 감정 상태 분석")
     st.info(analysis_result)
 
- 
-    if load_dsm5_result() is None:
-        with st.spinner("DSM-5 진단 기준에 따른 전문 분석 중... 🧠"):
-            dsm5_result = analyze_with_dsm5(diary, phq9_scores)
-            save_dsm5_result(dsm5_result)
-    dsm5_result = load_dsm5_result()
-    
+    # — 8) DSM-5 전문 분석 표시
     if "error" in dsm5_result and dsm5_result["error"]:
         st.error(dsm5_result["error"])
     else:
-        # 종합 분석 결과 표시 (간단한 카드)
         severity       = dsm5_result.get("severity", "분석 불가")
         positive_count = dsm5_result.get("positive_symptoms_count", 0)
         st.markdown(f"""
@@ -124,17 +150,13 @@ def show_result():
         </div>
         """, unsafe_allow_html=True)
 
-        # 전문가 의견
         if dsm5_result.get("professional_opinion"):
             st.markdown("#### 전문가 의견")
             st.info(dsm5_result["professional_opinion"])
-
-        # 권장사항
         if dsm5_result.get("recommendation"):
             st.markdown("#### 권장사항")
             st.success(dsm5_result["recommendation"])
 
-        # 증상 세부 분석 (확장 패널)
         with st.expander("DSM-5 증상 세부 분석"):
             for symptom, details in dsm5_result.get("symptom_analysis", {}).items():
                 present  = details.get("present", False)
@@ -156,7 +178,6 @@ def show_result():
                 </div>
                 """, unsafe_allow_html=True)
 
-        # 면책 조항
         st.caption(dsm5_result.get(
             "disclaimer",
             "이 분석은 참고용입니다. 정확한 진단은 전문가와 상담하세요."
@@ -164,31 +185,35 @@ def show_result():
 
     st.markdown("---")
 
+    # — 9) 이메일 입력 및 전송
     st.subheader("이메일을 알려주세요.")
+    receiver_email = st.text_input(
+        "✉️ 당신을 위한 작은 위로와 음악을 준비했어요. 이메일로 받아보고 싶다면 알려주세요.",
+        placeholder="이메일 주소를 입력하세요."
+    )
 
-    receiver_email = st.text_input("✉️ 당신을 위한 작은 위로와 음악을 준비했어요.이메일로 받아보고 싶다면,    알려주세요.  ",placeholder="이메일 주소를 입력하세요.")
-
-    if st.button("이메일 전송하기", type="primary",):
+    if st.button("이메일 전송하기", type="primary"):
         if not diary or not receiver_email.strip():
             st.warning("⚠️ 감정 일기와 이메일 주소를 모두 입력해주세요.")
         else:
-            from logic.alert_manager import send_alert_email  
-            from logic.diary_analyzer import analyze_diary  
-
             if load_music_link() is None:
                 with st.spinner("음악 추천 링크를 생성하는 중... 🎶"):
-                    comfort_message, music_link = analyze_diary(diary)
+                    comfort_msg, music_link = analyze_diary(diary)
                     save_music_link(music_link)
             music_link = load_music_link()
 
             email_subject = "🎵 당신의 감정에 어울리는 음악 추천입니다!"
             email_body = f"""
-                <div style="font-family: 'Arial', sans-serif; background-color: #fff8f0; padding: 20px; border-radius: 10px; line-height: 1.6;">
+                <div style="font-family: Arial, sans-serif; background-color: #fff8f0; 
+                            padding: 20px; border-radius: 10px; line-height: 1.6;">
                     <h3 style="color: #ff8c94;">💖 따뜻한 위로</h3>
-                    <p style="font-size: 16px; color: #555;">{comfort_message}</p>
+                    <p style="font-size: 16px; color: #555;">{comfort_msg}</p>
                     <h3 style="color: #6a5acd;">🎵 추천 음악 링크</h3>
                     <p style="font-size: 16px;">
-                        <a href="{music_link}" style="text-decoration: none; color: #1e90ff;">👉 여기서 음악 듣기 🎶</a>
+                        <a href="{music_link}" 
+                           style="text-decoration: none; color: #1e90ff;">
+                           👉 여기서 음악 듣기 🎶
+                        </a>
                     </p>
                 </div>
             """
@@ -196,28 +221,24 @@ def show_result():
             st.markdown("### 🎵 지금 바로 음악 감상하기")
             if "youtube.com" in music_link or "youtu.be" in music_link:
                 st.video(music_link)
-            elif music_link.endswith(".mp3") or music_link.endswith(".wav"):
+            elif music_link.endswith((".mp3", ".wav")):
                 st.audio(music_link)
             else:
                 st.info(f"[👉 추천 음악 링크로 이동하기 🎶]({music_link})")
 
-            # 10초 대기 후 이메일 전송
             time.sleep(10)
-
             with st.spinner("이메일 전송 중... 📧"):
-                success = send_alert_email(email_subject, email_body)
+                success = send_alert_email(email_subject, email_body,receiver_email)
 
             if success:
                 st.toast(f"✅ 이메일이 {receiver_email}로 성공적으로 전송되었습니다!")
-                st.balloons()    
+                st.balloons()
 
     st.markdown("---")
-    
-    # — 8) 다시 시작 버튼
+
+    # — 10) 다시 시작 버튼
     if st.button("처음으로 돌아가기"):
         for k in list(st.session_state.keys()):
             del st.session_state[k]
         st.session_state.page = "home"
         st.rerun()
-
-

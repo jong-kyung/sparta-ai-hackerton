@@ -2,6 +2,16 @@ import streamlit as st
 from logic.session_manager import save_diary_entry
 
 def show_diary():
+    st.markdown(
+    """
+    <style>
+    body {
+        background-color: #fdfcfc; /* AliceBlue 색상 */
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
     st.title("감정 일기")
     st.markdown(
     """

@@ -6,6 +6,9 @@ def show_survey():
     st.markdown(
         """
         <style>
+        body {
+            background-color: #fdfcfc; /* AliceBlue 색상 */
+        }
         /* 전체 설문 컨테이너 */
         .survey-container {
             max-width: 700px;
