@@ -82,7 +82,7 @@ def show_survey():
     name = st.text_input("이름을 알려주세요.")
 
     # — 생일 입력
-    birth_date = st.date_input("생일이 언제에요?", min_value=date(1960, 1, 1))
+    birth_date = st.date_input("생일이 언제예요?", min_value=date(1960, 1, 1))
 
     # — 직업 입력
     job = st.text_input("무슨 일을 하고 계신가요?", placeholder="예: 개발자, 디자이너 등")
