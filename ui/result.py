@@ -162,10 +162,11 @@ def show_result():
             "이 분석은 참고용입니다. 정확한 진단은 전문가와 상담하세요."
         ))
 
+    st.markdown("---")
 
-    st.subheader("✉️ 따뜻한 위로 및 음악 추천 링크 이메일로 받기")
+    st.subheader("이메일을 알려주세요.")
 
-    receiver_email = st.text_input("음악 링크를 받을 이메일 주소를 입력하세요")
+    receiver_email = st.text_input("✉️ 당신을 위한 작은 위로와 음악을 준비했어요.이메일로 받아보고 싶다면,    알려주세요.  ",placeholder="이메일 주소를 입력하세요.")
 
     if st.button("이메일 전송하기", type="primary",):
         if not diary or not receiver_email.strip():
@@ -210,6 +211,8 @@ def show_result():
                 st.toast(f"✅ 이메일이 {receiver_email}로 성공적으로 전송되었습니다!")
                 st.balloons()    
 
+    st.markdown("---")
+    
     # — 8) 다시 시작 버튼
     if st.button("처음으로 돌아가기"):
         for k in list(st.session_state.keys()):
