@@ -1,7 +1,5 @@
 import streamlit as st
-import streamlit.components.v1 as components
-import openai
-import os
+import time
 from logic.session_manager import (
     load_user_data,
     save_analysis_result,
@@ -194,8 +192,6 @@ def show_result():
                 </div>
             """
 
-            st.success("✅ 예약 완료! 1분 뒤에 이메일이 전송됩니다...")
-
             st.markdown("### 🎵 지금 바로 음악 감상하기")
             if "youtube.com" in music_link or "youtu.be" in music_link:
                 st.video(music_link)
@@ -205,14 +201,13 @@ def show_result():
                 st.info(f"[👉 추천 음악 링크로 이동하기 🎶]({music_link})")
 
             # 10초 대기 후 이메일 전송
-            import time
             time.sleep(10)
 
             with st.spinner("이메일 전송 중... 📧"):
                 success = send_alert_email(email_subject, email_body)
 
             if success:
-                st.success(f"✅ 이메일이 {receiver_email}로 성공적으로 전송되었습니다!")
+                st.toast(f"✅ 이메일이 {receiver_email}로 성공적으로 전송되었습니다!")
                 st.balloons()    
 
     # — 8) 다시 시작 버튼
