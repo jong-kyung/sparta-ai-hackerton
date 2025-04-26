@@ -5,7 +5,6 @@ __pycache__/
 *$py.class
 .env
 *.pyc
-.streamlit/config.toml
 
 # C extensions
 *.so
