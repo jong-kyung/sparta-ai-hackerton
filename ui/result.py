@@ -169,7 +169,7 @@ def show_result():
 
     receiver_email = st.text_input("음악 링크를 받을 이메일 주소를 입력하세요")
 
-    if st.button("1분 뒤 이메일 전송하기 ⏳"):
+    if st.button("이메일 전송하기", type="primary",):
         if not diary or not receiver_email.strip():
             st.warning("⚠️ 감정 일기와 이메일 주소를 모두 입력해주세요.")
         else:
@@ -204,9 +204,9 @@ def show_result():
             else:
                 st.info(f"[👉 추천 음악 링크로 이동하기 🎶]({music_link})")
 
-            # 1분 대기 후 이메일 전송
+            # 10초 대기 후 이메일 전송
             import time
-            time.sleep(60)
+            time.sleep(10)
 
             with st.spinner("이메일 전송 중... 📧"):
                 success = send_alert_email(email_subject, email_body)
