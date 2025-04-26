@@ -2,7 +2,6 @@ import streamlit as st
 import streamlit.components.v1 as components
 import openai
 import os
-from dotenv import load_dotenv
 from logic.session_manager import (
     load_user_data,
     save_analysis_result,
@@ -14,10 +13,7 @@ from logic.session_manager import (
 )
 from logic.survey_analyzer import survey_summary
 from logic.diary_analyzer import analyze_diary_and_comfort, analyze_with_dsm5
-from datetime import date
 
-load_dotenv()
-openai.api_key = os.getenv("OPENAI_API_KEY")
 
 
 def show_result():

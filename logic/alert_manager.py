@@ -1,12 +1,14 @@
 import smtplib
 from email.mime.text import MIMEText
 import os
-from dotenv import load_dotenv
+import streamlit as st
 
-load_dotenv()
 
-SENDER_EMAIL = os.getenv("SENDER_EMAIL")
-SENDER_PASSWORD = os.getenv("SENDER_PASSWORD")
+os.environ["SENDER_EMAIL"] = st.secrets["SENDER_EMAIL"]
+os.environ["SENDER_PASSWORD"] = st.secrets["SENDER_PASSWORD"]
+
+SENDER_EMAIL = os.environ.get("SENDER_EMAIL")
+SENDER_PASSWORD = os.environ.get("SENDER_PASSWORD")
 
 def send_alert_email(subject, body):
     receiver_email = SENDER_EMAIL  
