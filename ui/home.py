@@ -144,7 +144,7 @@ def show_home():
 
     # — 시작 버튼
     st.markdown('<div class="start-btn">', unsafe_allow_html=True)
-    if st.button("감정 설문 시작하기 ✍️"):
+    if st.button("지금 내 마음 살펴보기 🌸"):
         st.session_state.page = "survey"
         st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
